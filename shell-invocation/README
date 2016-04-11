@@ -1,0 +1,23 @@
+#############
+# DEPLOYING #
+#############
+
+$ sls dash deploy
+
+#####################
+# RUNNING A COMMAND #
+#####################
+
+$ echo "$command" \
+        | xargs -I@ \
+                curl -s -X POST -d "{\"command\":\"@\"}" \
+                        "https://$(aws apigateway get-rest-apis | jq -r '.items | map(select(.name == "tundra")) | .[].id').execute-api.us-west-2.amazonaws.com/dev/shell-invocation" \
+        | jq -r .output
+
+###############
+# CLEANING UP #
+###############
+
+$ aws apigateway delete-rest-api --rest-api-id "$(aws apigateway get-rest-apis | jq -r '.items | map(select(.name == "tundra")) | .[].id')"
+
+$ aws lambda delete-function --function-name "tundra-shell-invocation"
